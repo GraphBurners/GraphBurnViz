@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Burning Number Calculator</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary-color: #ff6b6b;
+            --secondary-dark: #ff5252;
+            --gray-light: #f8f9fa;
+            --gray-medium: #e9ecef;
+            --gray-dark: #6c757d;
+            --success: #38b000;
+            --text-dark: #212529;
+            --text-light: #f8f9fa;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: #f5f7fb;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+       @media (min-width: 1024px) {
+    .container {
+        gap: 10px; /* Reduce the row gap */
+    }
+}
+
+        
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 300px 1fr;
+            }
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .info-panel {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .info-panel h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .info-panel p {
+            margin-bottom: 12px;
+        }
+        
+        .formula {
+            font-family: 'Courier New', monospace;
+            padding: 8px 12px;
+            background-color: var(--gray-light);
+            border-radius: 5px;
+            display: inline-block;
+            border: 1px solid var(--gray-medium);
+        }
+        
+        .radio-container {
+            margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .radio-option input {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+        
+        .controls {
+            margin-bottom: 25px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--gray-medium);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.3);
+        }
+        
+        button {
+            padding: 10px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: var(--transition);
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background-color: var(--gray-dark);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-success:hover {
+            background-color: #2d9600;
+        }
+        
+        #burning-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--gray-dark);
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .progress-container {
+            margin: 15px 0;
+            background-color: var(--gray-medium);
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        #grid-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            padding:0;
+        }
+        
+        .grid {
+            display: grid;
+            gap: 0px;  /* Reduced from 4px */
+            margin-bottom: 20px;
+            margin-top:20px;
+            line-height: 0; /* Remove line height spacing */
+            font-size: 0;
+            
+         }
+
+        .cell {
+            width: 40px;  /* Reduced from 45px */
+            height: 35px; /* Reduced from 45px */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px; /* Reduced from 8px */
+            font-weight: 600;
+            transition: transform 0.2s ease, background-color 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Reduced shadow */
+   }
+
+        
+        .cell:hover {
+            transform: scale(1.05);
+        }
+        
+        .normal {
+            background-color: white;
+            border: 1px solid var(--gray-medium);
+        }
+        
+        .burned {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .center {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .rounds-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 500;
+            border-left: 4px solid;
+        }
+        
+        .alert-primary {
+            background-color: rgba(67, 97, 238, 0.15);
+            border-left-color: var(--primary-color);
+            color: var(--primary-dark);
+        }
+        
+        .instruction {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .controls-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Grid Burning Number Calculator</h1>
+    </header>
+    
+    <div class="info-panel">
+        <h2>About Burning Numbers</h2>
+        <p>The burning number of a grid is the minimum number of rounds needed to burn the entire grid.</p>
+        
+        <div class="radio-container">
+            <label class="radio-option">
+                <input type="radio" id="cartesian" name="grid-type" value="cartesian" checked>
+                Cartesian Product (4-connected)
+            </label>
+            <label class="radio-option">
+                <input type="radio" id="strong" name="grid-type" value="strong">
+                Strong Product (8-connected)
+            </label>
+        </div>
+        
+        <div id="cartesian-formula">
+            <p>Formula (Cartesian Product): <span class="formula">2*(k-1)³ + k-1 ≥ 3*m*n</span> where k is the burning number.</p>
+            <p>In each round, fire spreads to adjacent cells (horizontally, vertically).</p>
+        </div>
+        
+        <div id="strong-formula" class="hidden">
+            <p>Formula (Strong Product): <span class="formula">2k⁴ + 4k³ + k² - 1 ≥ 6*m*n</span> where k is the burning number.</p>
+            <p>In each round, fire spreads to adjacent cells (horizontally, vertically, and diagonally).</p>
+        </div>
+        
+        <ol>
+            <li>You select center cells to start burning</li>
+            <li>In subsequent rounds, the fire spreads to all adjacent cells (based on selected grid type)</li>
+        </ol>
+    </div>
+    
+    <div class="container">
+        <div class="controls-area">
+            <div class="card controls">
+                <h2>Grid Configuration</h2>
+                <div class="input-group">
+                    <label for="rows">Number of Rows (m):</label>
+                    <input type="number" id="rows" min="1" max="20" value="3">
+                </div>
+                
+                <div class="input-group">
+                    <label for="cols">Number of Columns (n):</label>
+                    <input type="number" id="cols" min="1" max="20" value="3">
+                </div>
+                
+                <button id="create-grid" class="btn-primary">Create Grid</button>
+            </div>
+            
+            <div id="burning-info" class="card hidden">
+                <h2>Burning Information</h2>
+                
+                <div id="burning-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Burning Number</div>
+                        <div class="stat-value" id="burning-number">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Current Round</div>
+                        <div class="stat-value" id="current-round">0</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-primary">
+                    <span id="round-instruction">Select <span id="centers-needed" class="instruction">0</span> centers to burn in this round.</span>
+                </div>
+                
+                <div>
+                    <p>Burning Progress:</p>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+                    <p class="text-center"><span id="burned-count">0</span>/<span id="total-cells">0</span> cells burned</p>
+                </div>
+                
+                <div class="rounds-panel" id="rounds-controls">
+                    <button id="next-round" class="btn-primary" disabled>Next Round</button>
+                    <button id="undo-action" class="btn-secondary" disabled>Undo Last Action</button>
+                    <button id="reset-grid" class="btn-success">Reset</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="grid-container" class="card"></div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const rowsInput = document.getElementById('rows');
+            const colsInput = document.getElementById('cols');
+            const createGridBtn = document.getElementById('create-grid');
+            const gridContainer = document.getElementById('grid-container');
+            const burningInfo = document.getElementById('burning-info');
+            const burningNumberSpan = document.getElementById('burning-number');
+            const currentRoundSpan = document.getElementById('current-round');
+            const centersNeededSpan = document.getElementById('centers-needed');
+            const burnedCountSpan = document.getElementById('burned-count');
+            const totalCellsSpan = document.getElementById('total-cells');
+            const roundsControls = document.getElementById('rounds-controls');
+            const nextRoundBtn = document.getElementById('next-round');
+            const resetGridBtn = document.getElementById('reset-grid');
+            const undoBtn = document.getElementById('undo-action');
+            const cartesianRadio = document.getElementById('cartesian');
+            const strongRadio = document.getElementById('strong');
+            const cartesianFormula = document.getElementById('cartesian-formula');
+            const strongFormula = document.getElementById('strong-formula');
+            const progressBar = document.getElementById('progress-bar');
+            
+            // State variables
+            let grid = [];
+            let rows, cols;
+            let burningNumber = 0;
+            let currentRound = 0;
+            let centersSelected = 0;
+            let centersNeeded = 0;
+            let burnedCells = new Set();
+            let centersSet = new Set();
+            let totalCells = 0;
+            let isStrongProduct = false;
+            
+            // History for undo functionality
+            let history = [];
+            
+            // Toggle formula display based on grid type selection
+            cartesianRadio.addEventListener('change', function() {
+                if (this.checked) {
+                    cartesianFormula.classList.remove('hidden');
+                    strongFormula.classList.add('hidden');
+                    isStrongProduct = false;
+                }
+            });
+            
+            strongRadio.addEventListener('change', function() {
+                if (this.checked) {
+                    cartesianFormula.classList.add('hidden');
+                    strongFormula.classList.remove('hidden');
+                    isStrongProduct = true;
+                }
+            });
+            
+            // Initialize grid
+            createGridBtn.addEventListener('click', function() {
+                rows = parseInt(rowsInput.value);
+                cols = parseInt(colsInput.value);
+                
+                if (rows < 1 || cols < 1 || rows > 20 || cols > 20) {
+                    alert('Please enter valid grid dimensions (1-20)');
+                    return;
+                }
+                
+                totalCells = rows * cols;
+                isStrongProduct = strongRadio.checked;
+                
+                // Calculate burning number based on selected grid type
+                burningNumber = isStrongProduct 
+                    ? calculateStrongBurningNumber(rows, cols)
+                    : calculateCartesianBurningNumber(rows, cols);
+                
+                // Reset state
+                currentRound = 1;
+                centersNeeded = 1; // Start with 1 center in the first round
+                centersSelected = 0;
+                burnedCells = new Set();
+                centersSet = new Set();
+                history = [];
+                
+                // Update UI
+                burningNumberSpan.textContent = burningNumber;
+                currentRoundSpan.textContent = currentRound;
+                centersNeededSpan.textContent = centersNeeded;
+                burnedCountSpan.textContent = 0;
+                totalCellsSpan.textContent = totalCells;
+                burningInfo.classList.remove('hidden');
+                roundsControls.classList.remove('hidden');
+                nextRoundBtn.disabled = true;
+                undoBtn.disabled = true;
+                progressBar.style.width = '0%';
+                
+                createGrid();
+            });
+            
+            // Calculate the burning number for Cartesian product (Fixed formula)
+            function calculateCartesianBurningNumber(m, n) {
+                let k = 1;
+                // Using the formula: 2*(k-1)^3 + k-1 >= 3*m*n
+                while (true) {
+                    let leftSide = 2 * Math.pow(k - 1, 3) + (k - 1);
+                    let rightSide = 3 * m * n;
+                    
+                    if (leftSide >= rightSide) {
+                        break;
+                    }
+                    k++;
+                }
+                return k - 1; // Fixed: Subtract 1 to get the correct burning number
+            }
+            
+            // Calculate the burning number for Strong product
+            function calculateStrongBurningNumber(m, n) {
+                let k = 1;
+                // Using the formula: 2k^4 + 4k^3 + k^2 - 1 >= 6*m*n
+                while ((2 * Math.pow(k, 4)) + (4 * Math.pow(k, 3)) + (Math.pow(k, 2)) - 1 < 6 * m * n) {
+                    k++;
+                }
+                return k;
+            }
+            
+            // Create the grid
+            function createGrid() {
+                grid = [];
+                gridContainer.innerHTML = '';
+                
+                const gridElement = document.createElement('div');
+                gridElement.className = 'grid';
+                gridElement.style.gridTemplateColumns = `repeat(${cols}, 40px)`;
+                
+                for (let i = 0; i < rows; i++) {
+                    const row = [];
+                    for (let j = 0; j < cols; j++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell normal';
+                        cell.textContent = '';
+                        cell.dataset.row = i;
+                        cell.dataset.col = j;
+                        
+                        cell.addEventListener('click', function() {
+                            handleCellClick(i, j, cell);
+                        });
+                        
+                        gridElement.appendChild(cell);
+                        row.push({
+                            burned: false,
+                            center: false,
+                            element: cell
+                        });
+                    }
+                    grid.push(row);
+                }
+                
+                gridContainer.appendChild(gridElement);
+            }
+            
+            // Handle cell click event
+            function handleCellClick(row, col, cellElement) {
+                // Only allow selecting unburned cells as centers during center selection phase
+                if (currentRound <= burningNumber && centersSelected < centersNeeded && !grid[row][col].burned) {
+                    const cellId = `${row},${col}`;
+                    
+                    if (!centersSet.has(cellId)) {
+                        // Save current state before making changes
+                        saveState();
+                        
+                        // Mark as center
+                        grid[row][col].center = true;
+                        grid[row][col].burned = true;
+                        cellElement.className = 'cell center';
+                        cellElement.textContent = currentRound;
+                        
+                        burnedCells.add(cellId);
+                        centersSet.add(cellId);
+                        centersSelected++;
+                        
+                        burnedCountSpan.textContent = burnedCells.size;
+                        updateProgressBar();
+                        
+                        if (centersSelected >= centersNeeded) {
+                            nextRoundBtn.disabled = false;
+                        }
+                        
+                        undoBtn.disabled = false;
+                    }
+                }
+            }
+            
+            // Update the progress bar
+            function updateProgressBar() {
+                const percentage = (burnedCells.size / totalCells) * 100;
+                progressBar.style.width = `${percentage}%`;
+            }
+            
+            // Save current grid state for undo functionality
+            function saveState() {
+                const state = {
+                    grid: JSON.parse(JSON.stringify(grid.map(row => row.map(cell => ({
+                        burned: cell.burned,
+                        center: cell.center
+                    }))))),
+                    burnedCells: Array.from(burnedCells),
+                    centersSet: Array.from(centersSet),
+                    centersSelected: centersSelected,
+                    currentRound: currentRound
+                };
+                
+                history.push(state);
+            }
+            
+            // Restore state from history
+            function restoreState(state) {
+                // Restore grid state
+                for (let i = 0; i < rows; i++) {
+                    for (let j = 0; j < cols; j++) {
+                        grid[i][j].burned = state.grid[i][j].burned;
+                        grid[i][j].center = state.grid[i][j].center;
+                        
+                        if (!grid[i][j].burned) {
+                            grid[i][j].element.className = 'cell normal';
+                            grid[i][j].element.textContent = '';
+                        } else if (grid[i][j].center) {
+                            grid[i][j].element.className = 'cell center';
+                            // Extract the round number from current centers
+                            const roundNum = Array.from(centersSet)
+                                .filter(id => {
+                                    const [r, c] = id.split(',').map(Number);
+                                    return r === i && c === j;
+                                })
+                                .map(() => currentRound)[0] || '';
+                            grid[i][j].element.textContent = roundNum;
+                        } else {
+                            grid[i][j].element.className = 'cell burned';
+                            grid[i][j].element.textContent = '';
+                        }
+                    }
+                }
+                
+                // Restore sets and counters
+                burnedCells = new Set(state.burnedCells);
+                centersSet = new Set(state.centersSet);
+                centersSelected = state.centersSelected;
+                currentRound = state.currentRound;
+                
+                // Update UI
+                burnedCountSpan.textContent = burnedCells.size;
+                currentRoundSpan.textContent = currentRound;
+                updateProgressBar();
+                
+                nextRoundBtn.disabled = centersSelected < centersNeeded;
+            }
+            
+            // Undo last action
+            undoBtn.addEventListener('click', function() {
+                if (history.length > 0) {
+                    const lastState = history.pop();
+                    restoreState(lastState);
+                    
+                    if (history.length === 0) {
+                        undoBtn.disabled = true;
+                    }
+                }
+            });
+            
+            // Proceed to next round
+            nextRoundBtn.addEventListener('click', function() {
+                // Save state before spreading fire
+                saveState();
+                
+                // Spread fire to neighbors
+                spreadFire();
+                
+                // Increment current round for display before checking completion
+                currentRound++; // Display round number as "next round" after burning
+                currentRoundSpan.textContent = currentRound;
+                
+                // Check if grid is completely burned
+                if (burnedCells.size === totalCells) {
+                    alert(`Grid completely burned in ${currentRound - 1} rounds!`);
+                    nextRoundBtn.disabled = true;
+                    return;
+                }
+                
+                // Prepare for next round
+                if (currentRound <= burningNumber) {
+                    centersNeeded = 1; // Each round we add one new center
+                    centersSelected = 0;
+                    centersNeededSpan.textContent = centersNeeded;
+                    nextRoundBtn.disabled = true;
+                } else {
+                    alert(`Maximum rounds (${burningNumber}) reached but grid is not completely burned.`);
+                    nextRoundBtn.disabled = true;
+                }
+                
+                undoBtn.disabled = false;
+            });
+            
+            // Spread fire to neighboring cells
+            function spreadFire() {
+                const newBurned = new Set();
+                
+                // Find all cells that will burn in this round
+                burnedCells.forEach(cellId => {
+                    const [row, col] = cellId.split(',').map(Number);
+                    
+                    let neighbors;
+                    
+                    if (isStrongProduct) {
+                        // Strong product: Include diagonals (8-connected)
+                        neighbors = [
+                            [row - 1, col],    // up
+                            [row - 1, col + 1], // up-right
+                            [row, col + 1],    // right
+                            [row + 1, col + 1], // down-right
+                            [row + 1, col],    // down
+                            [row + 1, col - 1], // down-left
+                            [row, col - 1],    // left
+                            [row - 1, col - 1]  // up-left
+                        ];
+                    } else {
+                        // Cartesian product: Only cardinals (4-connected)
+                        neighbors = [
+                            [row - 1, col], // up
+                            [row, col + 1], // right
+                            [row + 1, col], // down
+                            [row, col - 1]  // left
+                        ];
+                    }
+                    
+                    neighbors.forEach(([r, c]) => {
+                        // If neighbor is within grid bounds and not already burned
+                        if (r >= 0 && r < rows && c >= 0 && c < cols && !grid[r][c].burned) {
+                            newBurned.add(`${r},${c}`);
+                        }
+                    });
+                });
+                
+                // Apply the burning
+                newBurned.forEach(cellId => {
+                    const [row, col] = cellId.split(',').map(Number);
+                    grid[row][col].burned = true;
+                    grid[row][col].element.className = 'cell burned';
+                    burnedCells.add(cellId);
+                });
+                
+                burnedCountSpan.textContent = burnedCells.size;
+                updateProgressBar();
+            }
+            
+            // Reset the grid
+            resetGridBtn.addEventListener('click', function() {
+                createGridBtn.click();
+            });
+        });
+    </script>
+</body>
+</html>

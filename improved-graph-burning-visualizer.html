@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Burning Visualizer</title>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #f72585;
+      --light: #f8f9fa;
+      --dark: #2b2d42;
+      --success: #06d6a0;
+      --warning: #ffd166;
+      --danger: #ef476f;
+      --gray: #adb5bd;
+      --burned: #e63946;
+      --burned-border: #9d0208;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f0f2f5;
+      color: var(--dark);
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 30px;
+    }
+    
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-top: 0;
+      font-size: 2.2rem;
+      position: relative;
+      padding-bottom: 12px;
+    }
+    
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background-color: var(--primary);
+      border-radius: 2px;
+    }
+    
+    h3 {
+      color: var(--primary);
+      margin-top: 0;
+      border-left: 4px solid var(--primary);
+      padding-left: 10px;
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 25px;
+      padding: 20px;
+      background-color: var(--light);
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    
+    .control-group {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    input, button, select {
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      width: 100%;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+    
+    button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+    
+    button:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button:disabled {
+      background-color: var(--gray);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .graph-container {
+      overflow-x: auto;
+      margin-bottom: 25px;
+      padding: 30px 20px;
+      background-color: var(--light);
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      position: relative;
+    }
+    
+    .graph-container::before {
+      content: 'Graph Visualization';
+      position: absolute;
+      top: 10px;
+      left: 20px;
+      font-weight: 600;
+      color: var(--primary);
+      font-size: 0.9rem;
+    }
+    
+    .graph {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      min-height: 120px;
+      padding-top: 10px;
+    }
+    
+    .node {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background-color: white;
+      border: 2px solid var(--gray);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      font-size: 1rem;
+    }
+    
+    .node:hover {
+      transform: scale(1.15);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      z-index: 10;
+    }
+    
+    .node.selectable {
+      border-color: var(--primary);
+      box-shadow: 0 0 8px rgba(67, 97, 238, 0.4);
+    }
+    
+    .node.burning {
+      background-color: var(--burned);
+      color: white;
+      border-color: var(--burned-border);
+      animation: pulse 1.5s infinite;
+    }
+    
+    .node.burned {
+      background-color: var(--burned);
+      color: white;
+      border-color: var(--burned-border);
+    }
+    
+    .edge {
+      height: 3px;
+      background-color: var(--gray);
+      flex-grow: 1;
+      min-width: 20px;
+      position: relative;
+      top: -1px;
+    }
+    
+    .stats {
+      padding: 20px;
+      background-color: var(--light);
+      border-radius: 10px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--gray);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--primary);
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    
+    .action-buttons button {
+      flex: 1;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    
+    .action-buttons button#nextRound {
+      background-color: var(--success);
+    }
+    
+    .action-buttons button#nextRound:hover {
+      background-color: #05b186;
+    }
+    
+    .action-buttons button#undo {
+      background-color: var(--warning);
+      color: var(--dark);
+    }
+    
+    .action-buttons button#undo:hover {
+      background-color: #e9be5d;
+    }
+    
+    .action-buttons button#reset {
+      background-color: var(--danger);
+    }
+    
+    .action-buttons button#reset:hover {
+      background-color: #d63c61;
+    }
+    
+    .history-container {
+      background-color: var(--light);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    
+    .history {
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 15px;
+      background-color: white;
+      border-radius: 8px;
+      border: 1px solid #eee;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+    }
+    
+    .history-item {
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      border-left: 3px solid var(--primary);
+      background-color: #f8f9fa;
+      font-size: 0.9rem;
+    }
+    
+    .history-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 100;
+    }
+    
+    .information-panel {
+      margin-bottom: 25px;
+      padding: 15px 20px;
+      background-color: #e9f3ff;
+      border-left: 4px solid var(--primary);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      display: none;
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(239, 71, 111, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(239, 71, 111, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 71, 111, 0);
+      }
+    }
+    
+    .progress-bar {
+      height: 8px;
+      background-color: #e9ecef;
+      border-radius: 4px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background-color: var(--primary);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .controls {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .node {
+        width: 35px;
+        height: 35px;
+        font-size: 12px;
+      }
+      
+      .stat-value {
+        font-size: 1.4rem;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Graph Burning Visualizer</h1>
+    
+    <div class="information-panel" id="infoPanel">
+      <p><strong>Graph Burning:</strong> Select nodes to start fires. In each round, fires spread to adjacent nodes. The goal is to burn the entire graph in as few rounds as possible.</p>
+    </div>
+    
+    <div class="controls">
+      <div class="control-group">
+        <label for="pathLength">Path Length:</label>
+        <input type="number" id="pathLength" min="2" max="30" value="10">
+      </div>
+      
+      <div class="control-group">
+        <label for="activatorsPerRound">Activators per Round:</label>
+        <input type="number" id="activatorsPerRound" min="1" max="10" value="1">
+      </div>
+      
+      <div class="control-group">
+        <button id="generateGraph">Generate Graph</button>
+      </div>
+    </div>
+    
+    <div class="graph-container">
+      <div class="graph" id="graph"></div>
+    </div>
+    
+    <div class="stats" id="stats">
+      <div class="stat-item">
+        <div class="stat-label">Current Round</div>
+        <div class="stat-value" id="currentRound">1</div>
+      </div>
+      
+      <div class="stat-item">
+        <div class="stat-label">Nodes Burned</div>
+        <div class="stat-value"><span id="nodesBurned">0</span>/<span id="totalNodes">0</span></div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="burnProgress" style="width: 0%"></div>
+        </div>
+      </div>
+      
+      <div class="stat-item">
+        <div class="stat-label">Burning Efficiency</div>
+        <div class="stat-value" id="burningEfficiency">0</div>
+      </div>
+    </div>
+    
+    <div class="action-buttons">
+      <button id="nextRound" disabled>Burn Selected Nodes</button>
+      <button id="undo" disabled>Undo Last Action</button>
+      <button id="reset" disabled>Reset Graph</button>
+    </div>
+    
+    <div class="history-container">
+      <h3>History Log</h3>
+      <div class="history" id="history"></div>
+    </div>
+  </div>
+  
+  <script>
+    // State management
+    const state = {
+      pathLength: 10,
+      activatorsPerRound: 1,
+      currentRound: 1, // Starting from 1 instead of 0
+      nodeStates: [], // 0: unburned, 1: burning, 2: burned
+      graph: null,
+      history: [],
+      selectedNodes: new Set(),
+      roundInProgress: false
+    };
+    
+    // DOM Elements
+    const pathLengthInput = document.getElementById('pathLength');
+    const activatorsInput = document.getElementById('activatorsPerRound');
+    const generateButton = document.getElementById('generateGraph');
+    const graphContainer = document.getElementById('graph');
+    const nextRoundButton = document.getElementById('nextRound');
+    const undoButton = document.getElementById('undo');
+    const resetButton = document.getElementById('reset');
+    const historyContainer = document.getElementById('history');
+    const currentRoundSpan = document.getElementById('currentRound');
+    const nodesBurnedSpan = document.getElementById('nodesBurned');
+    const totalNodesSpan = document.getElementById('totalNodes');
+    const burningEfficiencySpan = document.getElementById('burningEfficiency');
+    const burnProgress = document.getElementById('burnProgress');
+    const infoPanel = document.getElementById('infoPanel');
+    
+    // Initialize the application
+    function init() {
+      generateButton.addEventListener('click', generateGraph);
+      nextRoundButton.addEventListener('click', processNextRound);
+      undoButton.addEventListener('click', undoLastAction);
+      resetButton.addEventListener('click', resetGraph);
+      
+      // Show information panel
+      infoPanel.style.display = 'block';
+      
+      // Add tooltips to buttons
+      addTooltip(generateButton, 'Create a new graph with specified parameters');
+      addTooltip(nextRoundButton, 'Start fires at selected nodes and propagate');
+      addTooltip(undoButton, 'Revert to previous state');
+      addTooltip(resetButton, 'Clear all fires and start over');
+    }
+    
+    // Add tooltip to an element
+    function addTooltip(element, text) {
+      const tooltip = document.createElement('div');
+      tooltip.className = 'tooltip';
+      tooltip.textContent = text;
+      element.style.position = 'relative';
+      element.appendChild(tooltip);
+      
+      element.addEventListener('mouseenter', () => {
+        tooltip.style.opacity = '1';
+      });
+      
+      element.addEventListener('mouseleave', () => {
+        tooltip.style.opacity = '0';
+      });
+    }
+    
+    // Generate the graph based on input parameters
+    function generateGraph() {
+      state.pathLength = parseInt(pathLengthInput.value, 10);
+      state.activatorsPerRound = parseInt(activatorsInput.value, 10);
+      
+      if (state.pathLength < 2) {
+        showNotification('Path length must be at least 2', 'warning');
+        return;
+      }
+      
+      if (state.activatorsPerRound < 1) {
+        showNotification('Must have at least 1 activator per round', 'warning');
+        return;
+      }
+      
+      if (state.activatorsPerRound > state.pathLength) {
+        state.activatorsPerRound = state.pathLength;
+        activatorsInput.value = state.pathLength;
+        showNotification('Activators per round limited to path length', 'info');
+      }
+      
+      // Reset state
+      state.currentRound = 1; // Starting from 1
+      state.nodeStates = Array(state.pathLength).fill(0);
+      state.history = [];
+      state.selectedNodes.clear();
+      state.roundInProgress = false;
+      
+      // Create graph visualization
+      graphContainer.innerHTML = '';
+      
+      for (let i = 0; i < state.pathLength; i++) {
+        if (i > 0) {
+          const edge = document.createElement('div');
+          edge.className = 'edge';
+          graphContainer.appendChild(edge);
+        }
+        
+        const node = document.createElement('div');
+        node.className = 'node selectable';
+        node.textContent = i + 1;
+        node.dataset.index = i;
+        
+        // Add tooltip to node
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip';
+        tooltip.textContent = `Node ${i + 1}`;
+        node.appendChild(tooltip);
+        
+        node.addEventListener('click', () => selectNode(i));
+        node.addEventListener('mouseenter', () => {
+          tooltip.style.opacity = '1';
+        });
+        node.addEventListener('mouseleave', () => {
+          tooltip.style.opacity = '0';
+        });
+        
+        graphContainer.appendChild(node);
+      }
+      
+      // Update UI
+      updateStats();
+      addHistoryEntry('Graph generated with path length ' + state.pathLength);
+      showNotification('Graph generated successfully! Select nodes to start fires.', 'success');
+      
+      // Enable buttons
+      nextRoundButton.disabled = true;
+      resetButton.disabled = false;
+      undoButton.disabled = true;
+      
+      // Start round
+      state.roundInProgress = true;
+    }
+    
+    // Show notification
+    function showNotification(message, type) {
+      // You could implement a toast notification system here
+      console.log(`${type}: ${message}`);
+    }
+    
+    // Handle node selection
+    function selectNode(index) {
+      if (!state.roundInProgress || state.nodeStates[index] !== 0) return;
+      
+      const nodeElement = document.querySelector(`.node[data-index="${index}"]`);
+      
+      if (state.selectedNodes.has(index)) {
+        state.selectedNodes.delete(index);
+        nodeElement.classList.remove('burning');
+        nodeElement.classList.add('selectable');
+      } else if (state.selectedNodes.size < state.activatorsPerRound) {
+        state.selectedNodes.add(index);
+        nodeElement.classList.add('burning');
+        nodeElement.classList.remove('selectable');
+      }
+      
+      // Update next round button state
+      nextRoundButton.disabled = state.selectedNodes.size === 0;
+      
+      // Update selection count
+      const selectionCount = state.selectedNodes.size;
+      const selectionText = selectionCount === 1 ? '1 node' : `${selectionCount} nodes`;
+      const remainingText = state.activatorsPerRound - selectionCount === 1 ? '1 more' : `${state.activatorsPerRound - selectionCount} more`;
+      
+      if (selectionCount > 0) {
+        if (selectionCount < state.activatorsPerRound) {
+          showNotification(`Selected ${selectionText}. You can select ${remainingText}.`, 'info');
+        } else {
+          showNotification(`Selected ${selectionText}. Click 'Burn Selected Nodes' to continue.`, 'info');
+        }
+      }
+    }
+    
+    // Process the next round of burning
+    function processNextRound() {
+      if (state.selectedNodes.size === 0) return;
+      
+      state.currentRound++;
+      
+      // Save current state for undo
+      const historyEntry = {
+        nodeStates: [...state.nodeStates],
+        round: state.currentRound - 1,
+        selectedNodes: [...state.selectedNodes]
+      };
+      state.history.push(historyEntry);
+      
+      // Update node states for selected nodes
+      state.selectedNodes.forEach(index => {
+        state.nodeStates[index] = 2; // Set to burned
+      });
+      
+      // Add history entry
+      addHistoryEntry(`Round ${state.currentRound-1}: Burned nodes ${[...state.selectedNodes].map(i => i + 1).join(', ')}`);
+      
+      // Clear selections for next round
+      state.selectedNodes.clear();
+      
+      // Start propagation
+      propagateBurning();
+      
+      // Update UI
+      updateGraph();
+      updateStats();
+      
+      // Enable undo button
+      undoButton.disabled = false;
+      
+      // Check if the game is over
+      if (isGraphFullyBurned()) {
+        state.roundInProgress = false;
+        nextRoundButton.disabled = true;
+        addHistoryEntry(`Graph fully burned in ${state.currentRound-1} rounds!`);
+        showNotification(`Success! Graph fully burned in ${state.currentRound-1} rounds.`, 'success');
+      } else {
+        state.roundInProgress = true;
+        nextRoundButton.disabled = true;
+      }
+    }
+    
+    // Propagate burning to neighboring nodes
+    function propagateBurning() {
+      const nodesBurningThisRound = [];
+      
+      // Find all nodes that are burning and their valid neighbors
+      for (let i = 0; i < state.nodeStates.length; i++) {
+        if (state.nodeStates[i] === 2) { // If node is burned
+          // Check left neighbor
+          if (i > 0 && state.nodeStates[i - 1] === 0) {
+            nodesBurningThisRound.push(i - 1);
+          }
+          
+          // Check right neighbor
+          if (i < state.nodeStates.length - 1 && state.nodeStates[i + 1] === 0) {
+            nodesBurningThisRound.push(i + 1);
+          }
+        }
+      }
+      
+      // Update states for neighbors that will burn
+      nodesBurningThisRound.forEach(index => {
+        state.nodeStates[index] = 2; // Set to burned directly
+      });
+      
+      if (nodesBurningThisRound.length > 0) {
+        addHistoryEntry(`Propagation: Burned neighbors ${nodesBurningThisRound.map(i => i + 1).join(', ')}`);
+      }
+    }
+    
+    // Update the graph visualization based on node states
+    function updateGraph() {
+      const nodes = document.querySelectorAll('.node');
+      
+      nodes.forEach((node, index) => {
+        node.className = 'node'; // Reset class
+        
+        const nodeState = state.nodeStates[index];
+        
+        if (nodeState === 0) { // Unburned
+          if (!isGraphFullyBurned()) {
+            node.classList.add('selectable');
+          }
+        } else if (nodeState === 1) { // Burning
+          node.classList.add('burning');
+        } else if (nodeState === 2) { // Burned
+          node.classList.add('burned');
+        }
+      });
+    }
+    
+    // Undo the last action
+    function undoLastAction() {
+      if (state.history.length === 0) return;
+      
+      const lastAction = state.history.pop();
+      state.nodeStates = [...lastAction.nodeStates];
+      state.currentRound = lastAction.round;
+      state.selectedNodes.clear();
+      
+      // Update UI
+      updateGraph();
+      updateStats();
+      addHistoryEntry('Undid last action');
+      showNotification('Reverted to previous state', 'info');
+      
+      // Enable/disable buttons
+      undoButton.disabled = state.history.length === 0;
+      nextRoundButton.disabled = false;
+      state.roundInProgress = true;
+    }
+    
+    // Reset the graph
+    function resetGraph() {
+      if (state.pathLength) {
+        state.nodeStates = Array(state.pathLength).fill(0);
+        state.currentRound = 1; // Reset to 1 instead of 0
+        state.history = [];
+        state.selectedNodes.clear();
+        state.roundInProgress = true;
+        
+        // Update UI
+        updateGraph();
+        updateStats();
+        addHistoryEntry('Graph reset');
+        showNotification('Graph has been reset', 'info');
+        
+        // Enable/disable buttons
+        nextRoundButton.disabled = false;
+        undoButton.disabled = true;
+      }
+    }
+    
+    // Add an entry to the history log
+    function addHistoryEntry(text) {
+      const timestamp = new Date().toLocaleTimeString();
+      const entry = document.createElement('div');
+      entry.className = 'history-item';
+      entry.textContent = `[${timestamp}] ${text}`;
+      historyContainer.prepend(entry);
+      
+      // Limit history items
+      if (historyContainer.children.length > 50) {
+        historyContainer.removeChild(historyContainer.lastChild);
+      }
+    }
+    
+    // Update statistics display
+    function updateStats() {
+      currentRoundSpan.textContent = state.currentRound;
+      
+      const burnedCount = state.nodeStates.filter(state => state === 2).length;
+      nodesBurnedSpan.textContent = burnedCount;
+      totalNodesSpan.textContent = state.pathLength;
+      
+      // Update progress bar
+      const progressPercentage = state.pathLength > 0 ? (burnedCount / state.pathLength) * 100 : 0;
+      burnProgress.style.width = `${progressPercentage}%`;
+      
+      const efficiency = state.currentRound > 1 
+        ? ((burnedCount / (state.currentRound-1)) / state.activatorsPerRound).toFixed(2)
+        : 0;
+      burningEfficiencySpan.textContent = efficiency;
+    }
+    
+    // Check if the graph is fully burned
+    function isGraphFullyBurned() {
+      return !state.nodeStates.includes(0) && !state.nodeStates.includes(1);
+    }
+    
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

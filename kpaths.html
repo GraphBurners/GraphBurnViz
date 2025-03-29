@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Burning Visualizer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            /* Cool color palette */
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #9b59b6;
+            --background-light: #f4f6f7;
+            --background-dark: #34495e;
+            --text-color: #2c3e50;
+            --danger-color: #e74c3c;
+            --success-color: #27ae60;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 30px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .section {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--background-dark);
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-control {
+            padding: 12px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 150px;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+
+        .input-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.2);
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .button i {
+            margin-right: 5px;
+        }
+
+        .button-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .button-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .button-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .button-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .button-secondary {
+            background-color: var(--background-dark);
+            color: white;
+        }
+
+        .button-secondary:hover {
+            background-color: #2c3e50;
+        }
+
+        .visualization-panel {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .svg-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .info-panel {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            background-color: var(--background-light);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            display: block;
+            color: var(--background-dark);
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        #message {
+            background-color: #fff3cd;
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .visualization-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .input-control {
+                max-width: 100%;
+            }
+        }
+
+        #graphSvg {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Graph Burning Visualizer</h1>
+            <p>Explore and Analyze Graph Burning Algorithms</p>
+        </div>
+
+        <div class="section">
+            <div class="input-group">
+                <label for="numPaths">Number of Paths</label>
+                <input type="number" id="numPaths" value="3" min="1" class="input-control">
+            </div>
+            
+            <div class="input-group">
+                <label>Path Lengths</label>
+                <div id="pathLengths" class="flex flex-wrap gap-2"></div>
+            </div>
+            
+            <button class="button button-primary" onclick="handleGenerate()">
+                <i class="fas fa-sync"></i> Generate Graph
+            </button>
+        </div>
+        
+        <div id="message"></div>
+        
+        <div class="section">
+            <div class="flex gap-2 mb-4">
+                <button class="button button-danger" onclick="handleBurnNeighbors()">
+                    <i class="fas fa-burn"></i> Burn Neighbors
+                </button>
+                <button class="button button-secondary" onclick="handleUndo()">
+                    <i class="fas fa-undo"></i> Undo
+                </button>
+                <button class="button button-secondary" onclick="handleReset()">
+                    <i class="fas fa-sync"></i> Reset
+                </button>
+            </div>
+        </div>
+        
+        <div class="visualization-panel">
+            <div class="svg-container">
+                <svg id="graphSvg" viewBox="0 0 600 300"></svg>
+            </div>
+            
+            <div class="info-panel">
+                <div id="burntNodesLegend" class="legend">
+                    <h3>Burning History</h3>
+                </div>
+                
+                <div class="stats-panel">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Nodes</span>
+                        <span class="stat-value" id="totalNodes">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Burnt Nodes</span>
+                        <span class="stat-value" id="burntNodes">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Current Round</span>
+                        <span class="stat-value" id="currentRound">1</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Previous JavaScript remains the same
+        // Only style changes in the script would be updating the message function
+        let paths = [];
+        let numPaths = 3;
+        let currentPathLengths = ['3', '4', '5'];
+        let graph = { nodes: [], edges: [] };
+        let burntNodes = {};
+        let activatorHistory = [];
+        let round = 1;
+        let selectedNode = null;
+
+        function setMessage(msg) {
+            document.getElementById('message').innerText = msg;
+        }
+
+        function generateGraph(customPaths = null) {
+            const pathLengthInputs = document.querySelectorAll('#pathLengths input');
+            const paths = customPaths || Array.from(pathLengthInputs).map(input => parseInt(input.value, 10));
+            
+            if (paths.some(isNaN)) {
+                setMessage('Please enter valid numbers for all path lengths.');
+                return;
+            }
+
+            graph.nodes = [];
+            graph.edges = [];
+            const nodeSet = new Set();
+
+            paths.forEach((pathLength, pathIndex) => {
+                for (let i = 0; i < pathLength; i++) {
+                    const nodeId = `p${pathIndex}-${i}`;
+                    nodeSet.add(nodeId);
+
+                    if (i > 0) {
+                        const prevNodeId = `p${pathIndex}-${i-1}`;
+                        graph.edges.push({ source: prevNodeId, target: nodeId });
+                    }
+                }
+            });
+
+            nodeSet.forEach(nodeId => {
+                graph.nodes.push({ id: nodeId });
+            });
+
+            burntNodes = {};
+            activatorHistory = [];
+            round = 1;
+            selectedNode = null;
+            setMessage('Graph generated. Select a node to burn as an activator for round 1.');
+            updateGraph();
+        }
+
+        function getNeighbors(nodeId) {
+            const neighbors = [];
+            graph.edges.forEach(edge => {
+                if (edge.source === nodeId) neighbors.push(edge.target);
+                else if (edge.target === nodeId) neighbors.push(edge.source);
+            });
+            return neighbors;
+        }
+
+        function canSelectAsActivator(nodeId) {
+            return !Object.values(burntNodes).flat().includes(nodeId);
+        }
+
+        function handleNodeClick(nodeId) {
+            if (!canSelectAsActivator(nodeId)) {
+                setMessage(`Node ${nodeId} is already burnt. Please select an unburnt node.`);
+                return;
+            }
+
+            if (!burntNodes[round]) {
+                burntNodes[round] = [];
+            }
+            
+            burntNodes[round].push(nodeId);
+            activatorHistory.push(nodeId);
+            selectedNode = nodeId;
+            setMessage(`Node ${nodeId} selected as activator for round ${round}. Click "Burn Neighbors" to proceed.`);
+            updateGraph();
+        }
+
+        function handleBurnNeighbors() {
+            if (selectedNode === null) {
+                setMessage('Please select an activator node first.');
+                return;
+            }
+
+            const nextRound = round + 1;
+            burntNodes[nextRound] = [];
+
+            const allBurntNodes = Object.values(burntNodes).flat();
+            const newlyBurntNodes = [];
+
+            allBurntNodes.forEach(nodeId => {
+                const neighbors = getNeighbors(nodeId);
+                neighbors.forEach(neighbor => {
+                    if (!allBurntNodes.includes(neighbor) && !newlyBurntNodes.includes(neighbor)) {
+                        newlyBurntNodes.push(neighbor);
+                    }
+                });
+            });
+
+            if (newlyBurntNodes.length === 0) {
+                const unburntCount = graph.nodes.length - allBurntNodes.length;
+                if (unburntCount === 0) {
+                    setMessage(`Complete! All nodes have been burnt in ${round} rounds.`);
+                } else {
+                    setMessage(`No new neighbors to burn. There are still ${unburntCount} unburnt nodes. Select a new activator for round ${nextRound}.`);
+                }
+            } else {
+                burntNodes[nextRound] = newlyBurntNodes;
+                setMessage(`Burned ${newlyBurntNodes.length} neighbors. Select an activator for round ${nextRound}.`);
+            }
+
+            round = nextRound;
+            selectedNode = null;
+            updateGraph();
+        }
+
+        function handleUndo() {
+            if (activatorHistory.length === 0) {
+                setMessage('Nothing to undo.');
+                return;
+            }
+
+            activatorHistory.pop();
+            const newBurntNodes = {};
+
+            activatorHistory.forEach((activator, index) => {
+                const roundNum = index + 1;
+                if (!newBurntNodes[roundNum]) {
+                    newBurntNodes[roundNum] = [];
+                }
+                newBurntNodes[roundNum].push(activator);
+
+                for (let r = roundNum + 1; r <= activatorHistory.length + 1; r++) {
+                    if (!newBurntNodes[r]) {
+                        newBurntNodes[r] = [];
+                    }
+
+                    const prevBurnt = Object.entries(newBurntNodes)
+                        .filter(([round]) => parseInt(round) < r)
+                        .flatMap(([_, nodes]) => nodes);
+
+                    prevBurnt.forEach(nodeId => {
+                        const neighbors = getNeighbors(nodeId);
+                        neighbors.forEach(neighbor => {
+                            const allBurnt = Object.values(newBurntNodes).flat();
+                            if (!allBurnt.includes(neighbor) && !newBurntNodes[r].includes(neighbor)) {
+                                newBurntNodes[r].push(neighbor);
+                            }
+                        });
+                    });
+                }
+            });
+
+            burntNodes = newBurntNodes;
+            round = activatorHistory.length + 1;
+            selectedNode = null;
+            setMessage(`Undid last action. Select an activator for round ${round}.`);
+            updateGraph();
+        }
+
+        function handleReset() {
+            burntNodes = {};
+            activatorHistory = [];
+            round = 1;
+            selectedNode = null;
+            setMessage('Graph reset. Select a node to burn as an activator for round 1.');
+            updateGraph();
+        }
+
+        function getNodeColor(nodeId) {
+            if (activatorHistory.includes(nodeId)) {
+                const activatorRound = activatorHistory.findIndex(id => id === nodeId) + 1;
+                return `rgb(255, ${Math.max(0, 255 - activatorRound * 50)}, 0)`;
+            }
+
+            for (const [roundNum, nodes] of Object.entries(burntNodes)) {
+                if (nodes.includes(nodeId)) {
+                    const intensity = Math.max(0, 255 - parseInt(roundNum) * 30);
+                    return `rgb(${intensity}, 0, 0)`;
+                }
+            }
+
+            return selectedNode === nodeId ? 'blue' : 'gray';
+        }
+
+function updateGraph() {
+    const svg = document.getElementById('graphSvg');
+    svg.innerHTML = '';
+
+    if (!graph.nodes.length || !graph.edges.length) return;  // Prevents rendering an empty graph
+
+    // Find maximum path length
+    const maxPathLength = Math.max(...graph.nodes.map(node => parseInt(node.id.split('-')[1])));
+
+    // Count the number of distinct paths
+    const numPaths = new Set(graph.nodes.map(node => node.id.split('-')[0])).size;
+
+    // Set SVG width and height dynamically
+    const svgWidth = Math.max(600, maxPathLength * 100 + 100);
+    const svgHeight = Math.max(400, numPaths * 100 + 50);
+
+    svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+
+    const nodeSpacingX = svgWidth / (maxPathLength + 2);  // Space nodes properly
+    const nodeSpacingY = Math.min(100, svgHeight / (numPaths + 1));  // Adjust vertical spacing
+
+    // Draw edges
+    graph.edges.forEach(edge => {
+        const [sourcePath, sourcePos] = edge.source.split('-');
+        const [targetPath, targetPos] = edge.target.split('-');
+
+        const x1 = parseInt(sourcePos) * nodeSpacingX + nodeSpacingX / 2;
+        const y1 = parseInt(sourcePath.substring(1)) * nodeSpacingY + 50;
+        const x2 = parseInt(targetPos) * nodeSpacingX + nodeSpacingX / 2;
+        const y2 = parseInt(targetPath.substring(1)) * nodeSpacingY + 50;
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x1);
+        line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2);
+        line.setAttribute('y2', y2);
+        line.setAttribute('stroke', 'black');
+        line.setAttribute('stroke-width', '2');
+        svg.appendChild(line);
+    });
+
+    // Draw nodes
+    graph.nodes.forEach(node => {
+        const [pathId, position] = node.id.split('-');
+
+        const x = parseInt(position) * nodeSpacingX + nodeSpacingX / 2;
+        const y = parseInt(pathId.substring(1)) * nodeSpacingY + 50;
+
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.onclick = () => handleNodeClick(node.id);
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', x);
+        circle.setAttribute('cy', y);
+        circle.setAttribute('r', '15');
+        circle.setAttribute('fill', getNodeColor(node.id));
+        circle.setAttribute('stroke', 'black');
+        circle.setAttribute('stroke-width', '2');
+        g.appendChild(circle);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', x);
+        text.setAttribute('y', y + 5);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('font-size', '14px');
+        text.setAttribute('fill', 'black');
+        text.textContent = node.id;
+        g.appendChild(text);
+
+        svg.appendChild(g);
+    });
+
+
+
+
+            // Update legend
+            const burntNodesLegend = document.getElementById('burntNodesLegend');
+            burntNodesLegend.innerHTML = '<h3>Burning History:</h3>';
+            Object.entries(burntNodes).forEach(([roundNum, nodes]) => {
+                const div = document.createElement('div');
+                div.className = 'mb-1';
+                div.innerHTML = `<span class="font-medium">Round ${roundNum}:</span> ${
+                    roundNum === '1' ? `Activator: ${nodes.join(', ')}` : `Burnt neighbors: ${nodes.join(', ')}`
+                }`;
+                burntNodesLegend.appendChild(div);
+            });
+
+            // Update stats
+            document.getElementById('totalNodes').textContent = graph.nodes.length;
+            document.getElementById('burntNodes').textContent = Object.values(burntNodes).flat().length;
+            document.getElementById('currentRound').textContent = round;
+            document.getElementById('roundInfo').innerText = 
+                `Round: ${round} | Burnt: ${Object.values(burntNodes).flat().length}/${graph.nodes.length}`;
+        }
+
+        function handleGenerate() {
+          generateGraph();
+      }
+
+      // Initialize when the page loads
+      window.onload = function() {
+          // Initialize path length inputs
+          const pathLengthsDiv = document.getElementById('pathLengths');
+          currentPathLengths.forEach((length, index) => {
+              const input = document.createElement('input');
+              input.type = 'number';
+              input.value = length;
+              input.min = '1';
+              input.className = 'input-control';
+              const wrapper = document.createElement('div');
+              wrapper.className = 'input-wrapper';
+              wrapper.innerHTML = `
+                  <label class="input-label">Path ${index + 1}</label>
+              `;
+              wrapper.appendChild(input);
+              pathLengthsDiv.appendChild(wrapper);
+          });
+
+          // Add event listener for number of paths
+          document.getElementById('numPaths').addEventListener('change', function(e) {
+              const value = Math.max(1, parseInt(e.target.value) || 1);
+              numPaths = value;
+              const pathLengthsDiv = document.getElementById('pathLengths');
+              pathLengthsDiv.innerHTML = '';
+              
+              for (let i = 0; i < value; i++) {
+                  const input = document.createElement('input');
+                  input.type = 'number';
+                  input.value = '3';
+                  input.min = '1';
+                  input.className = 'input-control';
+                  const wrapper = document.createElement('div');
+                  wrapper.className = 'input-wrapper';
+                  wrapper.innerHTML = `
+                      <label class="input-label">Path ${i + 1}</label>
+                  `;
+                  wrapper.appendChild(input);
+                  pathLengthsDiv.appendChild(wrapper);
+              }
+              
+              currentPathLengths = Array(value).fill('3');
+          });
+
+          generateGraph();
+      };
+
+        function setMessage(msg) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = msg;
+        }
+    </script>
+</body>
+</html>

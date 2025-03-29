@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Burning Visualizer Suite</title>
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .intro-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #e3f2fd;
+            border-radius: 8px;
+            border-left: 5px solid #2196F3;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .visualizer-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .option-card {
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .option-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .option-card h3 {
+            color: #2196F3;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1976D2;
+        }
+
+        .definition-list {
+            padding-left: 20px;
+        }
+
+        .definition-list li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Graph Burning Visualizer Suite</h1>
+        </div>
+
+        <div class="intro-section">
+            <h2>Introduction to Graph Burning</h2>
+            <p>Graph burning is a theoretical model for spreading information or influence through a network. The process follows specific rules:</p>
+            <ul class="definition-list">
+                <li><strong>Initial State:</strong> All vertices start as unburned</li>
+                <li><strong>Burning Process:</strong> In each round:
+                    <ul>
+                        <li>A new unburned vertex is selected as a fire source</li>
+                        <li>Fire spreads to all adjacent unburned neighbors of currently burning vertices</li>
+                    </ul>
+                </li>
+                <li><strong>Burning Number:</strong> The minimum number of rounds needed to burn the entire graph</li>
+            </ul>
+        </div>
+
+        <div class="visualizer-options">
+            <div class="option-card" onclick="location.href='kpaths.html'">
+                <h3>K-Paths Burning Visualizer</h3>
+                <p>Visualize burning process on paths with customizable lengths and connections.</p>
+                <button>Launch</button>
+            </div>
+
+            <div class="option-card" onclick="location.href='improved-graph-burning-visualizer.html'">
+                <h3>Interactive Graph Burning</h3>
+                <p>Dynamic visualization with node selection and burn propagation controls.</p>
+                <button>Launch</button>
+            </div>
+
+            <div class="option-card" onclick="location.href='gridburnerv.html'">
+                <h3>Grid Burning Calculator</h3>
+                <p>Calculate and visualize burning numbers for grid graphs with different connectivity types.</p>
+                <button>Launch</button>
+            </div>
+            <div class="option-card" onclick="location.href='fixed-graph-burning-visualizer.html'">
+                <h3>Dynamic path Graph Burning</h3>
+                <p>Visualize how burning number changes when dealing with dynamic paths.</p>
+                <button>Launch</button>
+            </div>
+
+        </div>
+
+        <script>
+            // Add event listeners for card navigation
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (e.target.tagName !== 'BUTTON') {
+                        const button = this.querySelector('button');
+                        if (button) button.click();
+                    }
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>
