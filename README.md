@@ -30,6 +30,7 @@ The Graph Burning Visualizer Suite is organized into multiple HTML files, each r
 │── assets/                   # CSS, JS, and other assets
 Users can navigate between these files to access different burning models, each offering unique insights into the graph burning process.
 ```
+
 👥 Credits
 The Graph Burning Visualizer Suite was developed as part of a research project focused on Graph Burning Theory and its applications in network science and computational modeling. During our research, we faced significant difficulty in manually constructing graphs and simulating the burning process each time. Writing out the entire graph and tracking its burning sequence was both time-consuming and error-prone. To overcome this challenge, we sought to automate the process by developing an interactive tool that could dynamically generate graphs and simulate burning with minimal user effort.
 
