@@ -21,7 +21,7 @@ The suite is designed to be completely self-contained, meaning that no additiona
 
 📂 File Structure
 The Graph Burning Visualizer Suite is organized into multiple HTML files, each responsible for a different type of visualization.
-/GraphBurningVisualizer/
+```
 │── Merged.html               # Main dashboard
 │── kpaths.html               # K-Paths Burning Visualizer
 │── improved-graph-burning-visualizer.html # Interactive Graph Burning
